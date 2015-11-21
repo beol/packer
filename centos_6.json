@@ -1,0 +1,33 @@
+{
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+      "name": "centos-6.7-64",
+      "guest_os_type": "RedHat_64",
+      "iso_checksum_type": "md5",
+      "iso_checksum": "171ce654ec06040d096daf75934ca8ca",
+      "iso_url": "http://mirror.nus.edu.sg/centos/6.7/isos/x86_64/CentOS-6.7-x86_64-netinstall.iso",
+      "ssh_username": "vagrant",
+      "ssh_password": "vagrant",
+      "shutdown_command": "sudo -S /sbin/shutdown -P now",
+      "http_directory": "http",
+      "boot_command": [
+        "<wait><esc><esc>",
+        "linux ks=http://{{.HTTPIP}}:{{.HTTPPort}}/centos-6-kickstart.cfg<enter>"
+      ],
+      "disk_size": 8000,
+      "ssh_wait_timeout": "1800s",
+      "vm_name": "centos-6-x86_64",
+      "headless": true
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "scripts": [
+        "./scripts/install-vboxguestadditions.sh"
+      ]
+    }
+  ],
+  "post-processors": ["vagrant"]
+}
