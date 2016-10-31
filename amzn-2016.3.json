@@ -1,0 +1,25 @@
+{
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "source_ami": "ami-a59b49c6",
+      "region": "ap-southeast-1",
+      "instance_type": "t2.micro",
+      "ami_name": "amzn-ami-hvm-2016.03.3.x86_64-gp2-{{ isotime \"20060106-150405\" }}",
+      "ssh_username": "ec2-user",
+      "security_group_ids": [ "sg-dd7165b9" ],
+      "subnet_id": "subnet-cb3ed3bd",
+      "vpc_id": "vpc-9eaca8fb",
+      "ssh_pty": "true"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "sudo yum install -y virt-what git",
+        "sudo gem install puppet -v 3.8.7 --no-ri --no-rdoc"
+      ]
+    }
+  ]
+}
