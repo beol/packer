@@ -1,3 +1,4 @@
+.bundle/
 .vagrant/
 dist/
 packer_cache/
