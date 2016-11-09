@@ -2,14 +2,14 @@
   "builders": [
     {
       "type": "amazon-ebs",
-      "source_ami": "ami-44617116",
+      "source_ami": "ami-106aa373",
       "region": "ap-southeast-1",
       "instance_type": "t2.micro",
-      "ami_name": "centos-6.7-64-{{ isotime \"20060106-150405\" }}",
+      "ami_name": "centos-6-64-{{ isotime \"20060106-150405\" }}",
       "ssh_username": "centos",
-      "security_group_ids": [ "sg-7ab1c71f" ],
-      "subnet_id": "subnet-41cd3136",
-      "vpc_id": "vpc-2f24e14a",
+      "security_group_ids": [ "sg-dd7165b9" ],
+      "subnet_id": "subnet-cb3ed3bd",
+      "vpc_id": "vpc-9eaca8fb",
       "ssh_pty": "true"
     }
   ],
@@ -17,10 +17,11 @@
     {
       "type": "shell",
       "inline": [
-        "sudo yum install -y https://yum.puppetlabs.com/puppetlabs-release-el-6.noarch.rpm",
-        "sudo yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm",
+        "sudo yum -y install https://yum.puppetlabs.com/puppetlabs-release-el-6.noarch.rpm",
+        "sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm",
         "sudo yum clean all",
-        "sudo yum install -y puppet-3.8.4 dracut-modules-growroot",
+        "sudo yum -y update",
+        "sudo yum install -y puppet-3.8.7 dracut-modules-growroot git",
         "rpm -qa kernel | sed \"s/kernel-//\" | xargs -I {} sudo dracut -f /boot/initramfs-{}.img {}"
       ]
     },
@@ -28,5 +29,6 @@
       "type": "puppet-masterless",
       "manifest_file": "manifests/site.pp",
       "module_paths": [ "modules" ]
-    }]
+    }
+  ]
 }
