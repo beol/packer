@@ -1,0 +1,31 @@
+{
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "source_ami": "ami-4517b726",
+      "region": "ap-southeast-1",
+      "instance_type": "t2.micro",
+      "ami_name": "jenkins-master-cos6-64-{{ isotime \"20060106-150405\" }}",
+      "ssh_username": "centos",
+      "security_group_ids": [ "sg-dd7165b9" ],
+      "subnet_id": "subnet-cb3ed3bd",
+      "vpc_id": "vpc-9eaca8fb",
+      "ssh_pty": "true"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "sudo curl -L -o /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat-stable/jenkins.repo",
+        "sudo rpm --import http://pkg.jenkins-ci.org/redhat/jenkins-ci.org.key",
+        "sudo yum clean all",
+        "sudo yum -y install jenkins-1.651.3",
+        "curl -# -L --cookie \"oraclelicense=accept-secure-backup\" http://download.oracle.com/otn-pub/java/jdk/8u111-b14/jdk-8u111-linux-x64.tar.gz | sudo tar xzf - -C /opt",
+        "curl -# -L http://download.nus.edu.sg/mirror/apache/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz | sudo tar xzf - -C /opt",
+        "sudo chown -R root:root /opt",
+        "sudo chkconfig jenkins off"
+       ]
+    }
+  ]
+}
