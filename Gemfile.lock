@@ -18,5 +18,8 @@ PLATFORMS
 DEPENDENCIES
   puppet (= 3.8.7)
 
+RUBY VERSION
+   ruby 2.1.10p492
+
 BUNDLED WITH
-   1.12.5
+   1.13.6
