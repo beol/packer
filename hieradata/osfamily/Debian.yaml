@@ -1,0 +1,4 @@
+---
+packages:
+    dnsutils:
+        ensure: present

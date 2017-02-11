@@ -54,6 +54,10 @@
 #     Replace configuration file with that one delivered with this module
 #     Default: true
 #
+#   [*includedirsudoers*]
+#     Add #includedir /etc/sudoers.d to the end of sudoers, if not config_file_replace
+#     Default: true if RedHat 5.x
+#
 #   [*config_dir*]
 #     Main configuration directory
 #     Only set this, if your platform is not supported or you know,
@@ -65,6 +69,10 @@
 #     Only set this, if your platform is not supported or you know,
 #     what you're doing.
 #     Default: auto-set, platform specific
+#
+#   [*ldap_enable*]
+#     Enable ldap support on the package
+#     Default: false
 #
 # Actions:
 #   Installs sudo package and checks the state of sudoers file and
@@ -79,7 +87,8 @@
 # [Remember: No empty lines between comments and class definition]
 class sudo(
   $enable              = true,
-  $package             = $sudo::params::package,
+  $package_default     = $sudo::params::package,
+  $package_ldap        = $sudo::params::package_ldap,
   $package_ensure      = $sudo::params::package_ensure,
   $package_source      = $sudo::params::package_source,
   $package_admin_file  = $sudo::params::package_admin_file,
@@ -87,8 +96,10 @@ class sudo(
   $purge_ignore        = undef,
   $config_file         = $sudo::params::config_file,
   $config_file_replace = true,
+  $includedirsudoers   = $sudo::params::includedirsudoers,
   $config_dir          = $sudo::params::config_dir,
-  $source              = $sudo::params::source
+  $source              = $sudo::params::source,
+  $ldap_enable         = false,
 ) inherits sudo::params {
 
 
@@ -105,11 +116,27 @@ class sudo(
     default: { fail('no $enable is set') }
   }
 
-  class { 'sudo::package':
+  validate_bool($ldap_enable)
+  case $ldap_enable {
+    true: {
+      if $package_ldap == undef {
+        fail('on your os ldap support for sudo is not yet supported')
+      }
+      $package = $package_ldap
+    }
+    false: {
+      $package = $package_default
+    }
+    default: { fail('no $ldap_enable is set') }
+  }
+
+
+  class { '::sudo::package':
     package            => $package,
     package_ensure     => $package_ensure,
     package_source     => $package_source,
     package_admin_file => $package_admin_file,
+    ldap_enable        => $ldap_enable,
   }
 
   file { $config_file:
@@ -119,7 +146,7 @@ class sudo(
     mode    => '0440',
     replace => $config_file_replace,
     source  => $source,
-    require => Package[$package],
+    require => Class['sudo::package'],
   }
 
   file { $config_dir:
@@ -130,14 +157,14 @@ class sudo(
     recurse => $purge,
     purge   => $purge,
     ignore  => $purge_ignore,
-    require => Package[$package],
+    require => Class['sudo::package'],
   }
 
-  if $config_file_replace == false and $::osfamily == 'RedHat' and $::operatingsystemmajrelease == '5' {
+  if $config_file_replace == false and $includedirsudoers {
     augeas { 'includedirsudoers':
       changes => ['set /files/etc/sudoers/#includedir /etc/sudoers.d'],
       incl    => $config_file,
-      lens    => 'FixedSudoers.lns',
+      lens    => 'Sudoers.lns',
     }
   }
 
@@ -153,7 +180,7 @@ class sudo(
   #   http://projects.puppetlabs.com/issues/12345
   #
   if (versioncmp($::puppetversion, '3') != -1) {
-    include 'sudo::configs'
+    include '::sudo::configs'
   }
 
   anchor { 'sudo::begin': } ->

@@ -1,0 +1,64 @@
+---
+classes:
+    - sudo
+packages:
+    bash:
+        ensure: latest
+dnsmasq::conf:
+    interface:
+        ensure: 'present'
+        content: 'interface=lo
+listen-address=127.0.0.1
+bind-interfaces'
+        prio: 0
+sudo::configs:
+    'require-tty':
+        'priority': 0
+        'content': "Defaults !requiretty"
+ntp::servers:
+    - 0.pool.ntp.org
+    - 1.pool.ntp.org
+ntp::restrict:
+    - default ignore
+    - 127.0.0.1
+    - 0.pool.ntp.org nomodify notrap nopeer noquery
+    - 1.pool.ntp.org nomodify notrap nopeer noquery
+ntp::interfaces:
+    - 127.0.0.1
+sshd_configs:
+    AddressFamily:
+        ensure: 'present'
+        value: 'inet'
+    UseDNS:
+        ensure: present
+        value: 'no'
+sysctls:
+    net.ipv6.conf.all.disable_ipv6:
+        ensure: 'present'
+        value: 1
+    net.ipv6.conf.default.disable_ipv6:
+        ensure: 'present'
+        value: 1
+    net.ipv6.conf.lo.disable_ipv6:
+        ensure: 'present'
+        value: 1
+users:
+    beol:
+        ensure: present
+        home: /home/beol
+        shell: /bin/bash
+        managehome: true
+ssh_authorized_keys:
+    yana-mbp:
+        name: beol@yana-mbp.local
+        ensure: present
+        user: beol
+        type: ssh-rsa
+        key: AAAAB3NzaC1yc2EAAAADAQABAAABAQCuYC8OJrR1iDsnHA7lwa8GvQRh/rxkKW6TRlDp/OWfMAiPK6vWF3X37zelbPwhHxEkYlFkkb9bWMp0V79u+uNYKJcilKxdt5GNQ8eHyUUEsPUpG4UjBVHgD8DBkUG+LHSilYwpuflGDYvZ+PzkQYflz74FnbvkxjlLH8Y8llWd4FqnWKs/N3COGRHUivd0UGm0JoDfJYQZtFfG0im0Gs8IPLGW22w5nCOILz58/Azq7eyNMNJr2zdEgTc+eN5Kv/82bdYSvnGy+KX4RFwjqeViMLrGndfuj2v/ut3fOTgc6yTebdoyIp6yVI6BYqstABZq5 beol@yana-mbp.local
+    raspberrypi2:
+        name: beol@raspberry2.local
+        ensure: present
+        user: beol
+        type: ssh-rsa
+        key: AAAAB3NzaC1yc2EAAAADAQABAAABAQDap5SXB6Dn7UPa5hzRq39v3WQNYEcBR77SCOTsa7a2tHwOSGTieIDlyDXgiukXa8I3fZ3Ne4DH+f3/owW6cppiZBHD2lEGTkvwh0475REv2ATv4LXg5M4IIOrX3HZkIPNPOi/RIsTwRobWuQwzFEZi85Dpw+xbP3eyCm2Ptj2DTlHLMkspQF8qfNY/2iTbyQ7mBFuyL19V4hUIPEfHsUKAPMIqdLHuKTE9lJLn+6XXax9yReixDWvqv2jwjg1mgbo5eWDPsyJ+8LOF+fb+HGvL3DAJkRot+8MgYMrpb1ofi0aBBLJLd+97NlRaNfeObx8CYbL/22rYY8XjDlxFQU2L beol@raspberrypi2.local
+

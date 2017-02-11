@@ -1,0 +1,16 @@
+---
+packages:
+    vim-enhanced:
+        ensure: present
+    bind-utils:
+        ensure: present
+services:
+    iptables:
+        ensure: stopped
+        enable: false
+    ip6tables:
+        ensure: stopped
+        enable: false
+users:
+    centos:
+        ensure: present

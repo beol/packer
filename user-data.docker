@@ -1,0 +1,42 @@
+#cloud-config
+# vim: syntax=yaml
+apt_update: true
+apt_upgrade: all
+
+hostname: docker-ubuntu-01
+fqdn: docker-ubuntu-01.laksmana.net
+manage_etc_hosts: true
+
+users:
+- name: beol
+  groups: [adm, users]
+  sudo: ALL=(ALL) NOPASSWD:ALL
+  ssh-authorized-keys:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCuYC8OJrR1iDsnHA7lwa8GvQRh/rxkKW6TRlDp/OWfMAiPK6vWF3X37zelbPwhHxEkYlFkkb9bWMp0V79u+uNYKJcilKxdt5GNQ8eHyUUEsPUpG4UjBVHgD8DBkUG+LHSilYwpuflGDYvZ+PzkQYflz74FnbvkxjlLH8Y8llWd4FqnWKs/N3COGRHUivd0UGm0JoDfJYQZtFfG0im0Gs8IPLGW22w5nCOILz58/Azq7eyNMNJr2zdEgTc+eN5Kv/82bdYSvnGy+KX4RFwjqeViMLrGndfuj2v/ut3fOTgc6yTebdoyIp6yVI6BYqstABZq5 beol@yana-mbp.local
+  shell: /bin/bash
+
+
+apt:
+  preserve_sources_list: true
+  sources:
+    docker.list:
+      source: 'deb https://apt.dockerproject.org/repo ubuntu-xenial main'
+      keyid: 58118E89F3A912897C070ADBF76221572C52609D
+      keyserver: p80.pool.sks-keyservers.net
+
+packages:
+- docker-engine
+- tmux
+- git
+- aws-cli
+
+runcmd:
+- [ groupadd, -r, docker ]
+- [ usermod, -a, -G, docker, beol ]
+- [ sh, -xc, "curl -sS -o /tmp/public_ip http://169.254.169.254/latest/meta-data/public-ipv4" ]
+- [ sh, -xc, "curl -sS -u llaksmana:434CDD595DA8B26E \"https://dynamic.zoneedit.com/auth/dynamic.html?host=$(hostname -f)&dnsto=$(cat /tmp/public_ip)\"" ]
+- [ rm, -f, /tmp/public_ip ]
+
+output: { all : '| tee -a /var/log/cloud-init-output.log' }
+
+

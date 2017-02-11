@@ -1,33 +1,87 @@
 {
-  "builders": [
-    {
-      "type": "virtualbox-iso",
-      "name": "centos-6.7-64",
-      "guest_os_type": "RedHat_64",
-      "iso_checksum_type": "md5",
-      "iso_checksum": "171ce654ec06040d096daf75934ca8ca",
-      "iso_url": "http://mirror.nus.edu.sg/centos/6.7/isos/x86_64/CentOS-6.7-x86_64-netinstall.iso",
-      "ssh_username": "vagrant",
-      "ssh_password": "vagrant",
-      "shutdown_command": "sudo -S /sbin/shutdown -P now",
-      "http_directory": "http",
-      "boot_command": [
-        "<wait><esc><esc>",
-        "linux ks=http://{{.HTTPIP}}:{{.HTTPPort}}/centos-6-kickstart.cfg<enter>"
-      ],
-      "disk_size": 8000,
-      "ssh_wait_timeout": "1800s",
-      "vm_name": "centos-6-x86_64",
-      "headless": true
-    }
-  ],
-  "provisioners": [
-    {
-      "type": "shell",
-      "scripts": [
-        "./scripts/install-vboxguestadditions.sh"
-      ]
-    }
-  ],
-  "post-processors": ["vagrant"]
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "source_ami": "ami-106aa373",
+            "region": "ap-southeast-1",
+            "instance_type": "t2.micro",
+            "ami_name": "centos-6.7-64-{{ isotime \"20060106-150405\" }}",
+            "ami_description": "CentOS 6 x86_64",
+            "ssh_username": "centos",
+            "ssh_keypair_name": "beol@yana-mbp.local",
+            "ssh_agent_auth": "true",
+            "security_group_ids": [ "sg-dd7165b9" ],
+            "vpc_id": "vpc-9eaca8fb",
+            "ssh_pty": "true",
+            "tags": {
+                "os_version": "CentOS 6 x86_64",
+                "eol": "11/2020",
+                "created_at": "{{isotime \"06/01/2006 15:04:05\"}}"
+            }
+
+        },
+        {
+            "type": "virtualbox-iso",
+            "name": "centos-6-64",
+            "guest_os_type": "RedHat_64",
+            "iso_checksum_type": "md5",
+            "iso_checksum": "9e0ee4c5d9d0371fa0c0809b487ee5bb",
+            "iso_url": "http://mirror.nus.edu.sg/centos/6.8/isos/x86_64/CentOS-6.8-x86_64-netinstall.iso",
+            "ssh_username": "vagrant",
+            "ssh_password": "vagrant",
+            "shutdown_command": "sudo -S /sbin/shutdown -P now",
+            "http_directory": "http",
+            "boot_command": [
+                "<wait><esc><esc>",
+                "linux ks=http://{{.HTTPIP}}:{{.HTTPPort}}/centos-6-kickstart.cfg<enter>"
+            ],
+            "disk_size": 8000,
+            "ssh_wait_timeout": "1800s",
+            "vm_name": "centos-6-x86_64",
+            "headless": true,
+            "guest_additions_mode": "attach"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "sudo yum install -y https://yum.puppetlabs.com/puppetlabs-release-el-6.noarch.rpm",
+                "sudo yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm",
+                "sudo yum clean all",
+                "sudo yum install -y puppet"
+            ]
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "sudo yum install -y dracut-modules-growroot",
+                "rpm -qa kernel | sed \"s/kernel-//\" | xargs -I {} sudo dracut -f /boot/initramfs-{}.img {}"
+            ],
+            "only": ["amazon-ebs"]
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "sudo yum install -y dracut-modules-growroot",
+                "rpm -qa kernel | sed \"s/kernel-//\" | xargs -I {} sudo dracut -f /boot/initramfs-{}.img {}"
+            ],
+            "only": ["amazon-ebs"]
+        },
+        {
+            "type": "file",
+            "source": "hieradata",
+            "destination": "/tmp"
+        },
+        {
+            "type": "puppet-masterless",
+            "manifest_file": "manifests/site.pp",
+            "module_paths": [ "modules" ],
+            "hiera_config_path": "hiera.yaml",
+            "extra_arguments": "--debug --verbose --detailed-exitcodes",
+            "only": [
+                "amazon-ebs"
+            ]
+        }
+    ]
 }

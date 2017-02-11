@@ -1,0 +1,49 @@
+{
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "source_ami": "ami-83a713e0",
+            "region": "ap-southeast-1",
+            "instance_type": "t2.micro",
+            "ami_name": "ubuntu-16.04-64-{{ isotime \"20060106-150405\" }}",
+            "ami_description": "Ubuntu 16.04 LTS Xenial",
+            "ssh_username": "ubuntu",
+            "ssh_keypair_name": "beol@yana-mbp.local",
+            "ssh_agent_auth": "true",
+            "security_group_ids": [ "sg-dd7165b9" ],
+            "vpc_id": "vpc-9eaca8fb",
+            "ssh_pty": "true",
+            "tags": {
+                "os_version": "Ubuntu 16.04 LTS",
+                "code_name": "Xenial Xerus",
+                "eol": "04/2021",
+                "created_at": "{{isotime \"06/01/2006 15:04:05\"}}"
+            }
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "curl --fail -sS -o /tmp/puppetlabs-release-pc1-xenial.deb https://apt.puppetlabs.com/puppetlabs-release-pc1-xenial.deb",
+                "curl --fail -sS -o /tmp/DEB-GPG-KEY-puppet https://apt.puppetlabs.com/DEB-GPG-KEY-puppet",
+                "sudo dpkg -i /tmp/puppetlabs-release-pc1-xenial.deb",
+                "sudo apt-key add /tmp/DEB-GPG-KEY-puppet",
+                "sudo apt-get update",
+                "sudo apt-get install -y puppet"
+            ]
+        },
+        {
+            "type": "file",
+            "source": "hieradata",
+            "destination": "/tmp"
+        },
+        {
+            "type": "puppet-masterless",
+            "manifest_file": "manifests/site.pp",
+            "module_paths": [ "modules" ],
+            "hiera_config_path": "hiera.yaml",
+            "extra_arguments": "--debug --verbose --detailed-exitcodes"
+        }
+    ]
+}
